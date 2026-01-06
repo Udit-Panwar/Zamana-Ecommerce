@@ -113,10 +113,10 @@ export default function WorkInProgress() {
           <div className="mb-12 max-w-md mx-auto">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-semibold text-white/80">Progress</span>
-              <span className="text-sm font-bold text-cyan-400">75%</span>
+              <span className="text-sm font-bold text-cyan-400">55%</span>
             </div>
             <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden backdrop-blur-sm border border-white/20">
-              <div className="relative h-4 rounded-full overflow-hidden" style={{ width: '75%' }}>
+              <div className="relative h-4 rounded-full overflow-hidden" style={{ width: '55%' }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 animate-pulse"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
               </div>

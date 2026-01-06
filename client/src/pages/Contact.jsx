@@ -54,7 +54,7 @@ export default function Contact() {
         ))}
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 py-20">
+      <div className="relative max-w-7xl mx-auto px-6 py-24">
         {/* Header */}
         <div className="text-center mb-16 animate-slide-down">
           <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full mb-6 animate-glow-border">

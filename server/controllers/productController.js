@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 // Get all products with filtering and pagination
 exports.getProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 12, category, search, sort } = req.query;
+    const { page = 1, limit = 100, category, search, sort } = req.query;
     
     let query = {};
     

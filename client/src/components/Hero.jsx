@@ -13,8 +13,8 @@ const Hero = () => {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-10000"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2560&auto=format&fit=crop')`,
-          filter: "brightness(0.4) contrast(1.1)",
+          backgroundImage: `url('https://images.unsplash.com/photo-1675537057530-312348c6caa2?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGphY2tldHN8ZW58MHx8MHx8fDA%3D')`,
+          filter: "brightness(1.5) contrast(1.0)",
         }}
       />
 

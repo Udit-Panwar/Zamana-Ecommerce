@@ -41,12 +41,12 @@ const Navbar = () => {
       </NavLink>
 
       {/* Desktop Nav */}
-      <div className="hidden md:flex items-center gap-4 lg:gap-8 ml-20">
+      <div className="hidden md:flex items-center gap-8 lg:gap-8 ml-20">
         {navLinks.map((link, i) => (
           <a
             key={i}
             href={link.path}
-            className={`group flex flex-col gap-0.5 ${isScrolled ? "text-gray-700" : "text-white"
+            className={`group flex flex-col gap-2 ${isScrolled ? "text-gray-700" : "text-white"
               }`}
           >
             {link.name}

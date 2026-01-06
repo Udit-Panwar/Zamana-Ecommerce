@@ -16,7 +16,7 @@ export default function Collection() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/products");
+        const res = await fetch("http://localhost:5001/api/products");
         const data = await res.json();
         setProducts(data.products || []);
       } catch (error) {
@@ -28,7 +28,7 @@ export default function Collection() {
 
     fetchProducts();
   }, []);
-
+  
   const filtered =
     selectedCategory === "All"
       ? products
@@ -43,7 +43,7 @@ export default function Collection() {
   }
 
   return (
-    <main className="min-h-screen w-full py-16 px-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+    <main className="min-h-screen w-full py-20 px-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <div className="relative max-w-7xl mx-auto">
 
         {/* ✅ HEADING (UNCHANGED) */}

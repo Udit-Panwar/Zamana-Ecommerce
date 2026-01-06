@@ -102,7 +102,7 @@ export default function About() {
       
       {/* ------------------- HERO SECTION ------------------- */}
       <section className="relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-10 py-20 sm:py-20 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             
             <div className="animate-fade-in-left">
@@ -120,7 +120,7 @@ export default function About() {
                 <span className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent animate-gradient-text block">
                   shopping effortless
                 </span>
-                <span className="text-white">.</span>
+                {/* <span className="text-white">.</span> */}
               </h1>
               
               <p className="text-gray-300 text-base sm:text-lg lg:text-xl max-w-xl leading-relaxed mb-8">

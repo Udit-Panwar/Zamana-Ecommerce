@@ -29,7 +29,7 @@ const ShopContextProvider = ({ children }) => {
     const updated = [...cart, cartItem];
     setCart(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
-    alert(`${product.name} added to cart successfully`);
+    // alert(`${product.name} added to cart successfully`);
   };
 
   // FIXED: Remove by cartItemId (not product.id)
@@ -54,6 +54,12 @@ const ShopContextProvider = ({ children }) => {
     });
   };
 
+  const clearCart = () => {
+  setCart([]);
+  localStorage.removeItem("cart"); // important if you're persisting cart
+};
+
+  
   useEffect(() => {
     fetchProducts();
     fetchCart();
@@ -61,7 +67,7 @@ const ShopContextProvider = ({ children }) => {
 
   return (
     <ShopContext.Provider
-      value={{ cart, currency, addToCart, removeFromCart, updateQuantity }}
+      value={{ cart, currency, addToCart, removeFromCart, updateQuantity,clearCart }}
     >
       {children}
     </ShopContext.Provider>
