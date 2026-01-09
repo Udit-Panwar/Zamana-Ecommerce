@@ -93,10 +93,14 @@ const Navbar = () => {
         </Link>
 
         <SignedOut>
-          <SignInButton className='bg-white p-2 rounded-xl cursor-pointer hover:scale-95'></SignInButton>
+          <SignInButton mode="modal">
+            <button className="bg-white text-black px-5 py-2 rounded-full font-medium hover:scale-105 transition-all duration-300 shadow-md">
+              Login
+            </button>
+          </SignInButton>
         </SignedOut>
         <SignedIn>
-          <UserButton />
+          <UserButton afterSignOutUrl="/" />
         </SignedIn>
       </div>
 
