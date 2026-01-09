@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  ChevronLeft, 
+import React, { useState, useMemo, useEffect } from 'react';
+import axios from 'axios';
+import {
+  Users,
+  Search,
+  Filter,
+  ChevronLeft,
   ChevronRight,
   Mail,
   Phone,
@@ -12,31 +13,15 @@ import {
   DollarSign,
   TrendingUp,
   Eye,
-  X
+  X,
+  ShieldAlert,
+  Trash2
 } from 'lucide-react';
-
-// Mock customer data - Replace with API call
-const generateMockCustomers = () => {
-  const names = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Williams', 'David Brown', 'Emily Davis', 'Chris Wilson', 'Amanda Taylor', 'James Anderson', 'Lisa Martinez', 'Robert Garcia', 'Mary Rodriguez', 'William Lee', 'Patricia White', 'Thomas Harris'];
-  const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'];
-  const products = ['Laptop', 'Smartphone', 'Headphones', 'Tablet', 'Smart Watch', 'Camera', 'Gaming Console', 'Monitor', 'Keyboard', 'Mouse'];
-  
-  return Array.from({ length: 150 }, (_, i) => ({
-    id: i + 1,
-    name: names[Math.floor(Math.random() * names.length)],
-    email: `customer${i + 1}@example.com`,
-    phone: `+1 ${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 9000 + 1000)}`,
-    address: `${Math.floor(Math.random() * 9999) + 1} Main St, ${cities[Math.floor(Math.random() * cities.length)]}, NY ${Math.floor(Math.random() * 90000) + 10000}`,
-    totalOrders: Math.floor(Math.random() * 50) + 1,
-    totalSpent: Math.floor(Math.random() * 10000) + 100,
-    mostPurchased: products[Math.floor(Math.random() * products.length)],
-    joinDate: new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toLocaleDateString(),
-    status: Math.random() > 0.2 ? 'active' : 'inactive'
-  }));
-};
+import toast from 'react-hot-toast';
 
 const CustomerManagement = () => {
-  const [customers] = useState(generateMockCustomers());
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -45,12 +30,90 @@ const CustomerManagement = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const itemsPerPage = 10;
 
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await axios.get(`${API_BASE}/admin/customers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setCustomers(response.data.customers);
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCustomerDetails = async (customerId) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await axios.get(`${API_BASE}/admin/customers/${customerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setSelectedCustomer(response.data.customer);
+      }
+    } catch (error) {
+      console.error('Error fetching customer details:', error);
+    }
+  };
+
+  const promoteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to promote this user to Admin?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`${API_BASE}/admin/users/${userId}/promote`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        fetchCustomers(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error promoting user:', error);
+      toast.error(error.response?.data?.message || 'Failed to promote user');
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(`${API_BASE}/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        fetchCustomers(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete user');
+    }
+  };
+
   // Filter and sort customers
   const filteredCustomers = useMemo(() => {
     let filtered = customers.filter(customer => {
       const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          customer.phone.includes(searchTerm);
+        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.phone && customer.phone.includes(searchTerm));
       const matchesStatus = filterStatus === 'all' || customer.status === filterStatus;
       return matchesSearch && matchesStatus;
     });
@@ -58,13 +121,13 @@ const CustomerManagement = () => {
     filtered.sort((a, b) => {
       let aVal = a[sortBy];
       let bVal = b[sortBy];
-      
+
       if (typeof aVal === 'string') {
-        return sortOrder === 'asc' 
+        return sortOrder === 'asc'
           ? aVal.localeCompare(bVal)
           : bVal.localeCompare(aVal);
       }
-      
+
       return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
     });
 
@@ -255,20 +318,34 @@ const CustomerManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                      customer.status === 'active' 
-                        ? 'bg-green-500/20 text-green-300' 
-                        : 'bg-slate-500/20 text-slate-300'
-                    }`}>
+                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${customer.status === 'active'
+                      ? 'bg-green-500/20 text-green-300'
+                      : 'bg-slate-500/20 text-slate-300'
+                      }`}>
                       {customer.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex items-center gap-2">
                     <button
-                      onClick={() => setSelectedCustomer(customer)}
+                      onClick={() => fetchCustomerDetails(customer.id)}
                       className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors text-slate-400 hover:text-orange-400"
+                      title="View Details"
                     >
                       <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => promoteUser(customer.id)}
+                      className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors text-slate-400 hover:text-green-400"
+                      title="Make Admin"
+                    >
+                      <ShieldAlert className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteUser(customer.id)}
+                      className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors text-slate-400 hover:text-red-400"
+                      title="Delete User"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
@@ -282,7 +359,7 @@ const CustomerManagement = () => {
           <div className="text-sm text-slate-400">
             Showing {startIndex + 1} to {Math.min(endIndex, filteredCustomers.length)} of {filteredCustomers.length} customers
           </div>
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -291,7 +368,7 @@ const CustomerManagement = () => {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            
+
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum;
@@ -304,23 +381,22 @@ const CustomerManagement = () => {
                 } else {
                   pageNum = currentPage - 2 + i;
                 }
-                
+
                 return (
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white'
-                        : 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-orange-500'
-                    }`}
+                    className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === pageNum
+                      ? 'bg-gradient-to-r from-orange-500 to-rose-600 text-white'
+                      : 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-orange-500'
+                      }`}
                   >
                     {pageNum}
                   </button>
                 );
               })}
             </div>
-            
+
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
@@ -345,7 +421,7 @@ const CustomerManagement = () => {
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-rose-600 rounded-full flex items-center justify-center font-bold text-2xl">
@@ -354,11 +430,10 @@ const CustomerManagement = () => {
                 <div>
                   <h3 className="text-2xl font-bold text-white">{selectedCustomer.name}</h3>
                   <p className="text-slate-400">Customer ID: #{selectedCustomer.id}</p>
-                  <span className={`inline-flex mt-2 px-3 py-1 rounded-full text-xs font-semibold ${
-                    selectedCustomer.status === 'active' 
-                      ? 'bg-green-500/20 text-green-300' 
-                      : 'bg-slate-500/20 text-slate-300'
-                  }`}>
+                  <span className={`inline-flex mt-2 px-3 py-1 rounded-full text-xs font-semibold ${selectedCustomer.status === 'active'
+                    ? 'bg-green-500/20 text-green-300'
+                    : 'bg-slate-500/20 text-slate-300'
+                    }`}>
                     {selectedCustomer.status}
                   </span>
                 </div>

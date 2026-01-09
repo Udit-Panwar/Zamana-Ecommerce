@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
 
 const cartItemSchema = new mongoose.Schema({
-  products: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true
-    }
-  ],
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
+  },
   quantity: {
     type: Number,
     required: true,
@@ -16,10 +14,9 @@ const cartItemSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  user:{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  size: {
+    type: String,
+    default: 'M'
   }
 });
 
@@ -43,7 +40,7 @@ const cartSchema = new mongoose.Schema({
   timestamps: true
 });
 
-cartSchema.pre('save', function(next) {
+cartSchema.pre('save', function (next) {
   this.totalItems = this.items.reduce((total, item) => total + item.quantity, 0);
   this.totalAmount = this.items.reduce((total, item) => total + (item.quantity * item.price), 0);
   next();

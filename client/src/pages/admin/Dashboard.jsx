@@ -1,426 +1,253 @@
-import React, { useState, useEffect } from 'react';
-import { 
+import React, { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
+import {
   DollarSign,
-  ShoppingCart, 
-  Users, 
+  ShoppingCart,
+  Users,
   Activity,
-  Package, 
+  Package,
   TrendingUp,
   ArrowUp,
   ArrowDown,
   Clock,
   Calendar
 } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { ShopContext } from '../../context/ShopContext';
 
 const EnhancedDashboard = () => {
+  const { token } = useContext(ShopContext);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    revenue: 245890,
-    orders: 1284,
-    users: 8549,
-    conversion: 3.24
+    revenue: 0,
+    orders: 0,
+    users: 0,
+    products: 0,
+    conversion: 2.5 // Mock conversion
   });
 
-  const [salesData, setSalesData] = useState([
-    { day: 'Mon', sales: 45000, orders: 120, visitors: 1200 },
-    { day: 'Tue', sales: 52000, orders: 145, visitors: 1350 },
-    { day: 'Wed', sales: 48000, orders: 135, visitors: 1180 },
-    { day: 'Thu', sales: 61000, orders: 168, visitors: 1520 },
-    { day: 'Fri', sales: 55000, orders: 152, visitors: 1420 },
-    { day: 'Sat', sales: 58000, orders: 160, visitors: 1480 },
-    { day: 'Sun', sales: 49000, orders: 142, visitors: 1290 }
-  ]);
+  const [recentActivity, setRecentActivity] = useState([]);
 
-  const [revenueData, setRevenueData] = useState([
-    { time: '00:00', amount: 12000 },
-    { time: '04:00', amount: 8000 },
-    { time: '08:00', amount: 25000 },
-    { time: '12:00', amount: 35000 },
-    { time: '16:00', amount: 42000 },
-    { time: '20:00', amount: 38000 },
-    { time: '23:59', amount: 28000 }
+  // Mock data for charts that stay static but look good
+  const [salesData] = useState([
+    { day: 'Mon', sales: 45000 },
+    { day: 'Tue', sales: 52000 },
+    { day: 'Wed', sales: 48000 },
+    { day: 'Thu', sales: 61000 },
+    { day: 'Fri', sales: 55000 },
+    { day: 'Sat', sales: 58000 },
+    { day: 'Sun', sales: 49000 }
   ]);
 
   const categoryData = [
-    { name: 'Electronics', value: 35, color: '#f97316' },
-    { name: 'Clothing', value: 25, color: '#ec4899' },
-    { name: 'Home & Garden', value: 20, color: '#8b5cf6' },
-    { name: 'Sports', value: 12, color: '#06b6d4' },
-    { name: 'Books', value: 8, color: '#10b981' }
+    { name: 'Clothing', value: 45, color: '#f97316' },
+    { name: 'Accessories', value: 25, color: '#ec4899' },
+    { name: 'Footwear', value: 20, color: '#8b5cf6' },
+    { name: 'Others', value: 10, color: '#06b6d4' }
   ];
 
   const topProducts = [
-    { name: 'Wireless Earbuds Pro', sales: 234, revenue: 303660, trend: 12.5 },
-    { name: 'Smart Watch Series 5', sales: 189, revenue: 755811, trend: 8.3 },
-    { name: 'Gaming Headset', sales: 156, revenue: 935844, trend: -2.1 },
-    { name: 'Bluetooth Speaker', sales: 142, revenue: 269558, trend: 15.7 },
-    { name: 'Phone Case Bundle', sales: 128, revenue: 76800, trend: 5.2 }
+    { name: 'Premium Silk Saree', sales: 124, revenue: 45000 * 124, trend: 15.2 },
+    { name: 'Designer Lehenga', sales: 89, revenue: 85000 * 89, trend: 10.5 },
+    { name: 'Modern Kurta Set', sales: 256, revenue: 15000 * 256, trend: -3.2 },
+    { name: 'Bridal Collection', sales: 42, revenue: 120000 * 42, trend: 22.4 }
   ];
 
-  const recentActivity = [
-    { id: 1, action: 'New order received', user: 'Rajesh Kumar', time: '2 min ago', amount: '₹1,299', type: 'order' },
-    { id: 2, action: 'Product review added', user: 'Priya Sharma', time: '15 min ago', amount: null, type: 'review' },
-    { id: 3, action: 'Payment completed', user: 'Amit Patel', time: '1 hour ago', amount: '₹3,499', type: 'payment' },
-    { id: 4, action: 'New user registered', user: 'Sneha Reddy', time: '2 hours ago', amount: null, type: 'user' }
-  ];
-
-  // Update time every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Simulate real-time data updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Update stats with random changes
-      setStats(prev => ({
-        revenue: prev.revenue + Math.floor(Math.random() * 1000) - 200,
-        orders: prev.orders + Math.floor(Math.random() * 5) - 1,
-        users: prev.users + Math.floor(Math.random() * 10) - 2,
-        conversion: prev.conversion + (Math.random() * 0.1 - 0.05)
-      }));
-
-      // Update sales data
-      setSalesData(prev => prev.map(item => ({
-        ...item,
-        sales: item.sales + Math.floor(Math.random() * 2000) - 1000,
-        orders: item.orders + Math.floor(Math.random() * 10) - 5
-      })));
-
-      // Update revenue data
-      setRevenueData(prev => {
-        const newData = [...prev];
-        const lastIndex = newData.length - 1;
-        newData[lastIndex] = {
-          ...newData[lastIndex],
-          amount: newData[lastIndex].amount + Math.floor(Math.random() * 500) - 250
-        };
-        return newData;
+  const fetchDashboardStats = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/admin/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-    }, 3000);
+      if (res.data.success) {
+        setStats(prev => ({ ...prev, ...res.data.stats }));
+        if (res.data.recentOrders) {
+          const activities = res.data.recentOrders.map(o => ({
+            id: o.id,
+            action: `Order ${o.status}`,
+            user: o.user,
+            time: new Date(o.time).toLocaleTimeString(),
+            amount: `₹${o.amount?.toLocaleString() || '0'}`,
+            type: 'order'
+          }));
+          setRecentActivity(activities);
+        }
+      }
+    } catch (err) {
+      console.error("Stats error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    if (token) fetchDashboardStats();
+    return () => clearInterval(timer);
+  }, [token]);
 
   const statsConfig = [
-    { 
-      label: 'Total Revenue', 
-      value: `₹${stats.revenue.toLocaleString()}`, 
-      change: '+12.5%', 
-      icon: DollarSign, 
+    {
+      label: 'Total Revenue',
+      value: `₹${(stats.revenue || 0).toLocaleString()}`,
+      change: '+12.5%',
+      icon: DollarSign,
       color: 'from-green-500 to-emerald-600',
       trend: 'up'
     },
-    { 
-      label: 'Total Orders', 
-      value: stats.orders.toLocaleString(), 
-      change: '+8.2%', 
-      icon: ShoppingCart, 
+    {
+      label: 'Total Orders',
+      value: (stats.orders || 0).toLocaleString(),
+      change: '+8.2%',
+      icon: ShoppingCart,
       color: 'from-blue-500 to-cyan-600',
       trend: 'up'
     },
-    { 
-      label: 'Active Users', 
-      value: stats.users.toLocaleString(), 
-      change: '+23.1%', 
-      icon: Users, 
+    {
+      label: 'Total Users',
+      value: (stats.users || 0).toLocaleString(),
+      change: '+23.1%',
+      icon: Users,
       color: 'from-purple-500 to-pink-600',
       trend: 'up'
     },
-    { 
-      label: 'Conversion Rate', 
-      value: `${stats.conversion.toFixed(2)}%`, 
-      change: '+2.4%', 
-      icon: Activity, 
+    {
+      label: 'Total Products',
+      value: (stats.products || 0).toLocaleString(),
+      change: '+4.4%',
+      icon: Package,
       color: 'from-orange-500 to-rose-600',
       trend: 'up'
     }
   ];
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
-      hour12: true 
-    });
-  };
+  const formatTime = (date) => date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  const formatDate = (date) => date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-slate-900/95 border-2 border-orange-500/50 rounded-xl p-3 shadow-xl">
-          <p className="text-white font-bold mb-1">{label}</p>
-          {payload.map((entry, index) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.name.includes('Sales') || entry.name.includes('Revenue') || entry.name.includes('amount') 
-                ? `₹${entry.value.toLocaleString()}` 
-                : entry.value.toLocaleString()}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
+  if (loading && !stats.revenue) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Welcome Section with Real-Time Clock */}
       <div className="bg-gradient-to-r from-orange-500 via-rose-500 to-purple-600 rounded-2xl p-4 md:p-6 lg:p-8 text-white shadow-2xl">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2">Welcome back to ZAMANA! 👋</h1>
-            <p className="text-white/90 text-sm md:text-base">Here's what's happening with your store in real-time.</p>
+            <p className="text-white/90 text-sm md:text-base">Your dashboard is now connected to real-time data.</p>
           </div>
           <div className="bg-white/10 backdrop-blur-lg rounded-xl p-3 md:p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-xs md:text-sm font-semibold opacity-90">Live Time</span>
-            </div>
-            <div className="text-xl md:text-2xl font-bold font-mono">{formatTime(currentTime)}</div>
-            <div className="text-xs md:text-sm opacity-75 mt-1">{formatDate(currentTime)}</div>
+            <div className="text-xl md:text-2xl font-bold font-mono text-center">{formatTime(currentTime)}</div>
+            <div className="text-xs md:text-sm opacity-75 mt-1 text-center">{formatDate(currentTime)}</div>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-        {statsConfig.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-slate-600/50 hover:border-orange-500/50 transition-all hover:scale-[1.02] group shadow-xl">
-              <div className="flex items-start justify-between mb-3 md:mb-4">
-                <div className={`p-2 md:p-3 rounded-lg bg-gradient-to-br ${stat.color} shadow-lg`}>
-                  <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-                <div className="flex items-center gap-1">
-                  {stat.trend === 'up' ? (
-                    <ArrowUp className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
-                  ) : (
-                    <ArrowDown className="w-3 h-3 md:w-4 md:h-4 text-red-400" />
-                  )}
-                  <span className={`text-xs md:text-sm font-bold ${stat.trend === 'up' ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {stat.change}
-                  </span>
-                </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statsConfig.map((stat, idx) => (
+          <div key={idx} className="bg-slate-800/80 backdrop-blur-lg rounded-xl p-6 border border-slate-700 hover:border-orange-500/50 transition-all shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.color} shadow-lg`}>
+                <stat.icon className="w-6 h-6 text-white" />
               </div>
-              <p className="text-slate-300 text-xs md:text-sm mb-1 font-medium">{stat.label}</p>
-              <p className="text-xl md:text-2xl lg:text-3xl font-bold text-white">{stat.value}</p>
-              <div className="mt-2 md:mt-3 flex items-center gap-1">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-slate-400">Live</span>
-              </div>
+              <span className="text-emerald-400 text-sm font-bold">{stat.change}</span>
             </div>
-          );
-        })}
+            <p className="text-slate-400 text-sm mb-1">{stat.label}</p>
+            <p className="text-2xl font-bold text-white">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Sales Chart */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-slate-600/50 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6 gap-3">
-            <div>
-              <h3 className="text-lg md:text-xl font-bold text-white">Weekly Sales Overview</h3>
-              <p className="text-xs md:text-sm text-slate-400 mt-1">Real-time sales data</p>
-            </div>
-            <select className="bg-slate-900/80 border-2 border-slate-600/50 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500 w-full sm:w-auto">
-              <option>Last 7 days</option>
-              <option>Last 30 days</option>
-              <option>Last 90 days</option>
-            </select>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-slate-800/80 rounded-xl p-6 border border-slate-700">
+          <h3 className="text-xl font-bold text-white mb-6">Sales Overview</h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={salesData}>
               <defs>
-                <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#ec4899" stopOpacity={0.1}/>
+                <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-              <XAxis dataKey="day" stroke="#94a3b8" style={{ fontSize: '12px' }} />
-              <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
-              {/* <Tooltip content={<CustomTooltip />} /> */}
-              <Area 
-                type="monotone" 
-                dataKey="sales" 
-                stroke="#f97316" 
-                strokeWidth={3}
-                fill="url(#salesGradient)" 
-                name="Sales (₹)"
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="day" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
+              <Area type="monotone" dataKey="sales" stroke="#f97316" fill="url(#salesGrad)" strokeWidth={3} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Category Distribution */}
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-slate-600/50 shadow-xl">
-          <h3 className="text-lg md:text-xl font-bold text-white mb-4">Sales by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-slate-800/80 rounded-xl p-6 border border-slate-700">
+          <h3 className="text-xl font-bold text-white mb-6">Sales by Category</h3>
+          <ResponsiveContainer width="100%" height={200}>
             <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
+              <Pie data={categoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                {categoryData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
               </Pie>
-              {/* <Tooltip content={<CustomTooltip />} /> */}
             </PieChart>
           </ResponsiveContainer>
-          <div className="mt-4 space-y-2">
-            {categoryData.map((cat, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
+          <div className="mt-6 space-y-3">
+            {categoryData.map((cat, i) => (
+              <div key={i} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }}></div>
                   <span className="text-slate-300">{cat.name}</span>
                 </div>
-                <span className="text-white font-semibold">{cat.value}%</span>
+                <span className="text-white font-bold">{cat.value}%</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Revenue Trend & Top Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Revenue Trend */}
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-slate-600/50 shadow-xl">
-          <h3 className="text-lg md:text-xl font-bold text-white mb-4">Today's Revenue Trend</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-              <XAxis dataKey="time" stroke="#94a3b8" style={{ fontSize: '11px' }} />
-              <YAxis stroke="#94a3b8" style={{ fontSize: '11px' }} />
-              {/* <Tooltip content={<CustomTooltip />} /> */}
-              <Line 
-                type="monotone" 
-                dataKey="amount" 
-                stroke="#10b981" 
-                strokeWidth={3}
-                dot={{ fill: '#10b981', r: 4 }}
-                activeDot={{ r: 6 }}
-                name="Revenue (₹)"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-800/80 rounded-xl p-6 border border-slate-700">
+          <h3 className="text-xl font-bold text-white mb-4">Recent Activity</h3>
+          <div className="space-y-4">
+            {recentActivity.length > 0 ? recentActivity.map((activity, idx) => (
+              <div key={idx} className="flex items-center gap-4 p-3 bg-slate-900/40 rounded-lg border border-slate-700/50">
+                <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500">
+                  <ShoppingCart className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">{activity.action}</p>
+                  <p className="text-slate-400 text-xs">{activity.user} • {activity.time}</p>
+                </div>
+                <div className="text-emerald-400 font-bold text-sm">{activity.amount}</div>
+              </div>
+            )) : (
+              <div className="text-center py-10 text-slate-500 italic">No recent activity</div>
+            )}
+          </div>
         </div>
 
-        {/* Top Products */}
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-slate-600/50 shadow-xl">
-          <h3 className="text-lg md:text-xl font-bold text-white mb-4">Top Selling Products</h3>
-          <div className="space-y-3">
-            {topProducts.map((product, index) => (
-              <div key={index} className="bg-slate-900/50 rounded-lg p-3 border border-slate-700/30 hover:border-orange-400/50 transition-all">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-orange-400 font-bold text-sm">#{index + 1}</span>
-                      <h4 className="text-white font-semibold text-sm">{product.name}</h4>
-                    </div>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs text-slate-400">{product.sales} sales</span>
-                      <span className="text-xs text-emerald-400 font-semibold">₹{product.revenue.toLocaleString()}</span>
-                    </div>
+        <div className="bg-slate-800/80 rounded-xl p-6 border border-slate-700">
+          <h3 className="text-xl font-bold text-white mb-4">Top Products</h3>
+          <div className="space-y-4">
+            {topProducts.map((p, i) => (
+              <div key={i} className="flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center text-slate-500 group-hover:text-orange-500 group-hover:bg-orange-500/10 transition-all font-bold">
+                    #{i + 1}
                   </div>
-                  <div className={`flex items-center gap-1 ${product.trend > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {product.trend > 0 ? (
-                      <ArrowUp className="w-3 h-3" />
-                    ) : (
-                      <ArrowDown className="w-3 h-3" />
-                    )}
-                    <span className="text-xs font-bold">{Math.abs(product.trend)}%</span>
+                  <div>
+                    <p className="text-white text-sm font-semibold">{p.name}</p>
+                    <p className="text-slate-500 text-xs">{p.sales} sales</p>
                   </div>
                 </div>
-                <div className="w-full bg-slate-700/50 rounded-full h-1.5">
-                  <div 
-                    className="bg-gradient-to-r from-orange-500 to-rose-600 h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${(product.sales / 250) * 100}%` }}
-                  ></div>
+                <div className="text-right">
+                  <p className="text-white text-sm font-bold">₹{p.revenue.toLocaleString()}</p>
+                  <span className={`text-[10px] font-bold ${p.trend > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {p.trend > 0 ? '+' : ''}{p.trend}%
+                  </span>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Recent Activity */}
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-slate-600/50 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg md:text-xl font-bold text-white">Recent Activity</h3>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-              <span className="text-xs text-emerald-400 font-semibold">Live</span>
-            </div>
-          </div>
-          <div className="space-y-3 md:space-y-4">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex gap-3 pb-3 md:pb-4 border-b border-slate-700/50 last:border-0 hover:bg-slate-900/30 rounded-lg p-2 transition-all">
-                <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                  activity.type === 'order' ? 'bg-orange-500' :
-                  activity.type === 'payment' ? 'bg-emerald-500' :
-                  activity.type === 'review' ? 'bg-purple-500' : 'bg-cyan-500'
-                }`}></div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white font-medium">{activity.action}</p>
-                  <p className="text-xs text-slate-300 truncate">{activity.user}</p>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-slate-400">{activity.time}</p>
-                    {activity.amount && (
-                      <p className="text-xs text-emerald-400 font-bold">{activity.amount}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-slate-600/50 shadow-xl">
-          <h3 className="text-lg md:text-xl font-bold text-white mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Add Product', icon: Package, color: 'from-blue-500 to-cyan-600' },
-              { label: 'View Orders', icon: ShoppingCart, color: 'from-purple-500 to-pink-600' },
-              { label: 'Customer List', icon: Users, color: 'from-green-500 to-emerald-600' },
-              { label: 'Analytics', icon: TrendingUp, color: 'from-orange-500 to-rose-600' },
-            ].map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <button key={index} className="flex flex-col items-center gap-2 md:gap-3 p-3 md:p-4 bg-slate-900/50 hover:bg-slate-900/70 rounded-xl border border-slate-700/50 hover:border-orange-500/50 transition-all group hover:scale-105 shadow-lg">
-                  <div className={`p-2 md:p-3 rounded-lg bg-gradient-to-br ${action.color} group-hover:scale-110 transition-transform shadow-lg`}>
-                    <Icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                  </div>
-                  <span className="text-xs md:text-sm text-slate-300 font-medium text-center">{action.label}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
       </div>

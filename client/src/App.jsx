@@ -10,10 +10,17 @@ import Collection from "./pages/Collection";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import About from "./pages/About";
+import Product from "./pages/Product";
+import PlaceOrder from "./pages/PlaceOrder";
+import Orders from "./pages/Orders";
 import WorkInProgress from "./components/CommingSoon";
 import Dashboard from "./pages/admin/MainLayout";
+import { useContext } from "react";
+import { ShopContext } from "./context/ShopContext";
+import { Navigate } from "react-router-dom";
 
 const App = () => {
+  const { userData, loading } = useContext(ShopContext);
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith("/admin");
 
@@ -30,9 +37,18 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/product/:id" element={<Product />} />
+          <Route path="/place-order" element={<PlaceOrder />} />
+          <Route path="/orders" element={<Orders />} />
 
           {/* Admin Route */}
-          <Route path="/admin/*" element={<Dashboard />} />
+          <Route
+            path="/admin/*"
+            element={
+              loading ? <div className="min-h-screen bg-slate-950" /> :
+                userData?.role === 'admin' ? <Dashboard /> : <Navigate to="/" />
+            }
+          />
 
           {/* Fallback */}
           <Route path="*" element={<WorkInProgress />} />

@@ -1,9 +1,10 @@
 
 import React, { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Cart = () => {
+  const navigate = useNavigate();
   const context = useContext(ShopContext);
   const [showPayment, setShowPayment] = React.useState(false);
 
@@ -16,24 +17,24 @@ const Cart = () => {
     );
   }
 
-  const { cart = [], currency = "₹", removeFromCart, updateQuantity,clearCart } = context;
+  const { cart = [], currency = "₹", removeFromCart, updateQuantity, clearCart } = context;
 
   // Add quantity handling
 
-const handleIncrease = (product) => {
-  if (updateQuantity && product?.cartItemId) {
-    updateQuantity(product.cartItemId, (product.quantity || 1) + 1);
-  }
-};
-
-const handleDecrease = (product) => {
-  if (updateQuantity && product?.cartItemId) {
-    const currentQty = product.quantity || 1;
-    if (currentQty > 1) {
-      updateQuantity(product.cartItemId, currentQty - 1);
+  const handleIncrease = (product) => {
+    if (updateQuantity && product?.cartItemId) {
+      updateQuantity(product.cartItemId, (product.quantity || 1) + 1);
     }
-  }
-};
+  };
+
+  const handleDecrease = (product) => {
+    if (updateQuantity && product?.cartItemId) {
+      const currentQty = product.quantity || 1;
+      if (currentQty > 1) {
+        updateQuantity(product.cartItemId, currentQty - 1);
+      }
+    }
+  };
 
   // Calculate item totals with safety checks
   const cartWithTotals = cart.map(item => {
@@ -42,7 +43,7 @@ const handleDecrease = (product) => {
     const itemSubtotal = price * qty;
     const itemGST = itemSubtotal * 0.18;
     const itemTotal = itemSubtotal + itemGST;
-  
+
     return {
       ...item,
       quantity: qty,
@@ -74,8 +75,8 @@ Shipping: ${currency}${shipping.toFixed(2)}
 ━━━━━━━━━━━━━━
 Grand Total: ${currency}${grandTotal.toFixed(2)}
 ━━━━━━━━━━━━━━`);
-     clearCart();        // ✅ EMPTY CART
-  setShowPayment(false); // optional: go back to cart view
+    clearCart();        // ✅ EMPTY CART
+    setShowPayment(false); // optional: go back to cart view
   };
 
   return (
@@ -100,9 +101,9 @@ Grand Total: ${currency}${grandTotal.toFixed(2)}
             <div className="lg:col-span-2 space-y-4">
               {cartWithTotals.map((product) => {
                 // Safety checks for product data
-                const productId = product?.id || Math.random();
+                const productId = product?._id || product?.id;
                 const productName = product?.name || "Unknown Product";
-                const productImage = product?.img?.[0] || "https://via.placeholder.com/150";
+                const productImage = product?.images?.[0] || "https://via.placeholder.com/150";
                 const productPrice = product?.price || 0;
 
                 return (
@@ -206,51 +207,12 @@ Grand Total: ${currency}${grandTotal.toFixed(2)}
                   </div>
                 </div>
 
-                {!showPayment ? (
-                  <button
-                    onClick={handleCheckout}
-                    className="w-full bg-gradient-to-r from-orange-500 to-rose-600 text-white py-3 rounded-xl font-bold hover:from-orange-600 hover:to-rose-700 transition-all"
-                  >
-                    Proceed to Payment 💳
-                  </button>
-                ) : (
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => handlePayment('Credit/Debit Card')}
-                      className="w-full bg-slate-700/50 hover:bg-slate-700 border border-orange-500/50 hover:border-orange-500 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      💳 Credit/Debit Card
-                    </button>
-                    
-                    <button
-                      onClick={() => handlePayment('UPI')}
-                      className="w-full bg-slate-700/50 hover:bg-slate-700 border border-orange-500/50 hover:border-orange-500 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      📱 UPI
-                    </button>
-                    
-                    <button
-                      onClick={() => handlePayment('Net Banking')}
-                      className="w-full bg-slate-700/50 hover:bg-slate-700 border border-orange-500/50 hover:border-orange-500 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      🏦 Net Banking
-                    </button>
-                    
-                    <button
-                      onClick={() => handlePayment('Cash on Delivery')}
-                      className="w-full bg-slate-700/50 hover:bg-slate-700 border border-orange-500/50 hover:border-orange-500 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      💵 Cash on Delivery
-                    </button>
-
-                    <button
-                      onClick={() => setShowPayment(false)}
-                      className="w-full bg-slate-600/50 hover:bg-slate-600 text-white py-2 rounded-xl transition-all"
-                    >
-                      ← Back to Cart
-                    </button>
-                  </div>
-                )}
+                <button
+                  onClick={() => navigate('/place-order')}
+                  className="w-full bg-gradient-to-r from-orange-500 to-rose-600 text-white py-4 rounded-xl font-bold hover:shadow-2xl hover:shadow-orange-500/40 transform hover:scale-[1.02] transition-all uppercase tracking-widest"
+                >
+                  Proceed to Checkout 💳
+                </button>
               </div>
             </div>
           </div>

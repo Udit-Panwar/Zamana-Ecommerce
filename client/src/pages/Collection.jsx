@@ -2,37 +2,27 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 
 export default function Collection() {
-  const [products, setProducts] = useState([]);
+  const { products, addToCart, cart, removeFromCart, fetchProducts } = useContext(ShopContext);
+  const [displayProducts, setDisplayProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [quickViewItem, setQuickViewItem] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const { addToCart, cart, removeFromCart } = useContext(ShopContext);
+  useEffect(() => {
+    fetchProducts(); // Ensure we have latest products
+  }, []);
+
+  useEffect(() => {
+    setDisplayProducts(products);
+  }, [products]);
 
   const isInCart = (product) =>
-    cart.some((item) => item._id === product._id);
+    cart.some((p) => p._id === product._id);
 
-  // 🔥 FETCH PRODUCTS FROM BACKEND
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch("http://localhost:5001/api/products");
-        const data = await res.json();
-        setProducts(data.products || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-  
   const filtered =
     selectedCategory === "All"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+      ? displayProducts
+      : displayProducts.filter((p) => p.category === selectedCategory);
 
   if (loading) {
     return (

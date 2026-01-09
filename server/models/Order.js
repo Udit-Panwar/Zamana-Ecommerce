@@ -56,12 +56,31 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
-  transactionId: String
+  transactionId: String,
+  adminNotes: {
+    type: String,
+    default: ''
+  },
+  trackingNumber: {
+    type: String,
+    default: ''
+  },
+  estimatedDelivery: {
+    type: Date
+  },
+  statusHistory: [{
+    status: String,
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    note: String
+  }]
 }, {
   timestamps: true
 });
 
-orderSchema.pre('save', function(next) {
+orderSchema.pre('save', function (next) {
   if (!this.orderNumber) {
     this.orderNumber = 'ORD' + Date.now();
   }

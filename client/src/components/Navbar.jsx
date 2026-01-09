@@ -16,7 +16,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  const { cart } = useContext(ShopContext)
+  const { cart, userData, token, logout } = useContext(ShopContext)
 
   const { openSignIn } = useClerk()
 
@@ -31,8 +31,8 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 w-full flex items-center text-lg justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-50 ${isScrolled
-          ? "bg-white/80 shadow-md text-gray-700 backdrop-blur-lg py-3 md:py-4"
-          : "py-4 md:py-6"
+        ? "bg-white/80 shadow-md text-gray-700 backdrop-blur-lg py-3 md:py-4"
+        : "py-4 md:py-6"
         }`}
     >
       {/* Logo */}
@@ -43,19 +43,31 @@ const Navbar = () => {
       {/* Desktop Nav */}
       <div className="hidden md:flex items-center gap-8 lg:gap-8 ml-20">
         {navLinks.map((link, i) => (
-          <a
+          <NavLink
             key={i}
-            href={link.path}
-            className={`group flex flex-col gap-2 ${isScrolled ? "text-gray-700" : "text-white"
-              }`}
+            to={link.path}
+            className={({ isActive }) =>
+              `group flex flex-col gap-2 ${isScrolled ? "text-gray-700" : "text-white"} ${isActive ? "font-bold" : ""}`
+            }
           >
             {link.name}
             <div
               className={`${isScrolled ? "bg-gray-700" : "bg-white"
                 } h-0.5 w-0 group-hover:w-full transition-all duration-300`}
             />
-          </a>
+          </NavLink>
         ))}
+        {userData?.role === 'admin' && (
+          <NavLink
+            to="/admin"
+            className={({ isActive }) =>
+              `group flex flex-col gap-2 ${isScrolled ? "text-orange-600" : "text-orange-400"} ${isActive ? "font-bold" : ""}`
+            }
+          >
+            Admin Panel ⚙️
+            <div className="bg-orange-500 h-0.5 w-0 group-hover:w-full transition-all duration-300" />
+          </NavLink>
+        )}
       </div>
 
       <div className="hidden md:flex items-center gap-6">
@@ -69,7 +81,7 @@ const Navbar = () => {
         <Link to="/cart">
           <div className="relative">
             {
-              cart.length>0 && <p className="bg-gradient-to-r z-2 absolute left-4 animate-bounce from-orange-500 to-rose-600 text-white p-1 rounded-full w-[18px] h-[18px] text-[15px] flex items-center justify-center">{cart.length}</p>
+              cart.length > 0 && <p className="bg-gradient-to-r z-2 absolute left-4 animate-bounce from-orange-500 to-rose-600 text-white p-1 rounded-full w-[18px] h-[18px] text-[15px] flex items-center justify-center">{cart.length}</p>
             }
             <img
               src={assets.cart_icon}
@@ -111,10 +123,24 @@ const Navbar = () => {
         </button>
 
         {navLinks.map((link, i) => (
-          <a key={i} href={link.path} onClick={() => setIsMenuOpen(false)}>
+          <NavLink
+            key={i}
+            to={link.path}
+            onClick={() => setIsMenuOpen(false)}
+            className={({ isActive }) => isActive ? "text-cyan-500 font-bold" : ""}
+          >
             {link.name}
-          </a>
+          </NavLink>
         ))}
+        {userData?.role === 'admin' && (
+          <NavLink
+            to="/admin"
+            onClick={() => setIsMenuOpen(false)}
+            className={({ isActive }) => `text-orange-500 font-bold ${isActive ? "underline" : ""}`}
+          >
+            Admin Panel ⚙️
+          </NavLink>
+        )}
 
         <button onClick={openSignIn} className="bg-black text-white px-8 py-2.5 rounded-full transition-all duration-500">
           Login

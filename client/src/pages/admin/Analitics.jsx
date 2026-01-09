@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  TrendingUp, 
+import axios from 'axios';
+import {
+  TrendingUp,
   TrendingDown,
   DollarSign,
   ShoppingCart,
@@ -37,28 +38,59 @@ const AnalyticsDashboard = () => {
   const [timeRange, setTimeRange] = useState('7d');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Simulated real-time data update
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
   useEffect(() => {
+    fetchAnalytics();
+
+    // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       setLastUpdate(new Date());
-    }, 30000); // Update every 30 seconds
+      fetchAnalytics();
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [timeRange]);
+
+  const fetchAnalytics = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await axios.get(`${API_BASE}/admin/analytics`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { timeRange }
+      });
+
+      if (response.data.success) {
+        setAnalytics(response.data.analytics);
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchAnalytics();
+    setTimeout(() => {
+      setIsRefreshing(false);
+      setLastUpdate(new Date());
+    }, 1000);
+  };
+
+  if (loading || !analytics) {
+    return <div className="text-white text-center py-12">Loading analytics...</div>;
+  }
 
   // Revenue data over time
-  const revenueData = [
-    { date: 'Mon', revenue: 4200, orders: 45, avgOrder: 93 },
-    { date: 'Tue', revenue: 5800, orders: 62, avgOrder: 94 },
-    { date: 'Wed', revenue: 6500, orders: 68, avgOrder: 96 },
-    { date: 'Thu', revenue: 5200, orders: 55, avgOrder: 95 },
-    { date: 'Fri', revenue: 7800, orders: 82, avgOrder: 95 },
-    { date: 'Sat', revenue: 9200, orders: 95, avgOrder: 97 },
-    { date: 'Sun', revenue: 8100, orders: 88, avgOrder: 92 }
-  ];
+  const revenueData = analytics.revenueData || [];
 
-  // Customer activity data
+  // Customer activity data - Using mock data for now as we don't track sessions
   const customerActivityData = [
     { time: '00:00', active: 120, inactive: 380 },
     { time: '04:00', active: 80, inactive: 420 },
@@ -70,24 +102,12 @@ const AnalyticsDashboard = () => {
   ];
 
   // Product category sales
-  const categoryData = [
-    { name: 'Electronics', value: 35, sales: 12500 },
-    { name: 'Clothing', value: 25, sales: 8900 },
-    { name: 'Home & Garden', value: 20, sales: 7100 },
-    { name: 'Sports', value: 12, sales: 4300 },
-    { name: 'Books', value: 8, sales: 2850 }
-  ];
+  const categoryData = analytics.categoryData || [];
 
   // Top selling products
-  const topProducts = [
-    { name: 'Wireless Headphones', sales: 342, revenue: 34200, growth: 12 },
-    { name: 'Smart Watch', sales: 298, revenue: 29800, growth: 8 },
-    { name: 'Laptop Stand', sales: 256, revenue: 12800, growth: -3 },
-    { name: 'USB-C Cable', sales: 234, revenue: 4680, growth: 15 },
-    { name: 'Phone Case', sales: 198, revenue: 3960, growth: 5 }
-  ];
+  const topProducts = analytics.topProducts || [];
 
-  // Sales by region
+  // Sales by region - Using mock for now
   const regionData = [
     { region: 'North America', sales: 45000, orders: 450, color: '#f97316' },
     { region: 'Europe', sales: 38000, orders: 380, color: '#8b5cf6' },
@@ -96,7 +116,7 @@ const AnalyticsDashboard = () => {
     { region: 'Others', sales: 15000, orders: 150, color: '#6366f1' }
   ];
 
-  // Traffic sources
+  // Traffic sources - Mock
   const trafficData = [
     { source: 'Direct', value: 35, color: '#f97316' },
     { source: 'Social Media', value: 28, color: '#8b5cf6' },
@@ -107,11 +127,11 @@ const AnalyticsDashboard = () => {
 
   const COLORS = ['#f97316', '#8b5cf6', '#06b6d4', '#10b981', '#6366f1'];
 
-  // Key metrics
+  // Key metrics from API
   const metrics = [
     {
       title: 'Total Revenue',
-      value: '$47,234',
+      value: `$${analytics.metrics.totalRevenue.toFixed(2)}`,
       change: '+12.5%',
       trend: 'up',
       icon: DollarSign,
@@ -121,7 +141,7 @@ const AnalyticsDashboard = () => {
     },
     {
       title: 'Total Orders',
-      value: '1,234',
+      value: analytics.metrics.totalOrders.toString(),
       change: '+8.2%',
       trend: 'up',
       icon: ShoppingCart,
@@ -130,8 +150,8 @@ const AnalyticsDashboard = () => {
       data: revenueData.map(d => d.orders)
     },
     {
-      title: 'Active Customers',
-      value: '8,549',
+      title: 'Total Users',
+      value: analytics.metrics.totalUsers.toString(),
       change: '+18.7%',
       trend: 'up',
       icon: Users,
@@ -140,8 +160,8 @@ const AnalyticsDashboard = () => {
       data: customerActivityData.map(d => d.active)
     },
     {
-      title: 'Conversion Rate',
-      value: '3.24%',
+      title: 'Avg Order Value',
+      value: `$${analytics.metrics.avgOrderValue.toFixed(2)}`,
       change: '-2.4%',
       trend: 'down',
       icon: Activity,
@@ -150,14 +170,6 @@ const AnalyticsDashboard = () => {
       data: [65, 68, 72, 70, 75, 73, 71]
     }
   ];
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      setLastUpdate(new Date());
-    }, 1000);
-  };
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -183,7 +195,7 @@ const AnalyticsDashboard = () => {
           <h1 className="text-3xl font-bold text-white mb-2">Analytics Dashboard</h1>
           <p className="text-slate-400">Real-time business insights and performance metrics</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <select
             value={timeRange}
@@ -195,7 +207,7 @@ const AnalyticsDashboard = () => {
             <option value="30d">Last 30 Days</option>
             <option value="90d">Last 90 Days</option>
           </select>
-          
+
           <button
             onClick={handleRefresh}
             className={`flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white hover:border-orange-500 transition-colors ${isRefreshing ? 'animate-pulse' : ''}`}
@@ -203,7 +215,7 @@ const AnalyticsDashboard = () => {
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          
+
           <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-rose-600 rounded-lg text-white hover:shadow-lg hover:shadow-orange-500/20 transition-all">
             <Download className="w-4 h-4" />
             Export
@@ -232,20 +244,20 @@ const AnalyticsDashboard = () => {
                   <Icon className="w-6 h-6 text-white" />
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className={`flex items-center gap-1 text-sm font-semibold ${metric.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
                   {metric.trend === 'up' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                   {metric.change}
                 </div>
-                
+
                 <div className="flex-1 ml-4">
                   <ResponsiveContainer width="100%" height={30}>
                     <LineChart data={metric.data.map((val, i) => ({ value: val }))}>
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke={metric.trend === 'up' ? '#10b981' : '#ef4444'} 
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke={metric.trend === 'up' ? '#10b981' : '#ef4444'}
                         strokeWidth={2}
                         dot={false}
                       />
@@ -267,17 +279,17 @@ const AnalyticsDashboard = () => {
           </div>
           <BarChart3 className="w-6 h-6 text-orange-400" />
         </div>
-        
+
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={revenueData}>
             <defs>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -285,20 +297,20 @@ const AnalyticsDashboard = () => {
             <YAxis stroke="#94a3b8" />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Area 
-              type="monotone" 
-              dataKey="revenue" 
-              stroke="#f97316" 
-              fillOpacity={1} 
-              fill="url(#colorRevenue)" 
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#f97316"
+              fillOpacity={1}
+              fill="url(#colorRevenue)"
               name="Revenue ($)"
             />
-            <Area 
-              type="monotone" 
-              dataKey="orders" 
-              stroke="#8b5cf6" 
-              fillOpacity={1} 
-              fill="url(#colorOrders)" 
+            <Area
+              type="monotone"
+              dataKey="orders"
+              stroke="#8b5cf6"
+              fillOpacity={1}
+              fill="url(#colorOrders)"
               name="Orders"
             />
           </AreaChart>
@@ -316,7 +328,7 @@ const AnalyticsDashboard = () => {
             </div>
             <Users className="w-6 h-6 text-purple-400" />
           </div>
-          
+
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={customerActivityData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -339,7 +351,7 @@ const AnalyticsDashboard = () => {
             </div>
             <PieChart className="w-6 h-6 text-orange-400" />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <ResponsiveContainer width="50%" height={250}>
               <RechartsPie>
@@ -359,13 +371,13 @@ const AnalyticsDashboard = () => {
                 <Tooltip content={<CustomTooltip />} />
               </RechartsPie>
             </ResponsiveContainer>
-            
+
             <div className="flex-1 space-y-3">
               {categoryData.map((category, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
+                    <div
+                      className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     />
                     <span className="text-slate-300 text-sm">{category.name}</span>
@@ -392,7 +404,7 @@ const AnalyticsDashboard = () => {
             </div>
             <Package className="w-6 h-6 text-blue-400" />
           </div>
-          
+
           <div className="space-y-4">
             {topProducts.map((product, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-700/50 hover:border-orange-500/50 transition-all">
@@ -405,7 +417,7 @@ const AnalyticsDashboard = () => {
                     <p className="text-slate-400 text-sm">{product.sales} sales</p>
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <div className="text-white font-semibold">${product.revenue.toLocaleString()}</div>
                   <div className={`flex items-center gap-1 text-sm ${product.growth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -428,7 +440,7 @@ const AnalyticsDashboard = () => {
                 <p className="text-slate-400 text-sm">Where visitors come from</p>
               </div>
             </div>
-            
+
             <div className="space-y-3">
               {trafficData.map((item, index) => (
                 <div key={index}>
@@ -437,9 +449,9 @@ const AnalyticsDashboard = () => {
                     <span className="text-white font-semibold text-sm">{item.value}%</span>
                   </div>
                   <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div 
+                    <div
                       className="h-2 rounded-full transition-all duration-500"
-                      style={{ 
+                      style={{
                         width: `${item.value}%`,
                         backgroundColor: item.color
                       }}
@@ -458,13 +470,13 @@ const AnalyticsDashboard = () => {
                 <p className="text-slate-400 text-sm">Geographic distribution</p>
               </div>
             </div>
-            
+
             <div className="space-y-3">
               {regionData.map((region, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
+                    <div
+                      className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: region.color }}
                     />
                     <span className="text-slate-300">{region.region}</span>

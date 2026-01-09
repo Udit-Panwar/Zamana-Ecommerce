@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Plus,
   Edit2,
@@ -13,10 +13,13 @@ import {
   AlertCircle,
   CheckCircle
 } from "lucide-react";
+import { ShopContext } from "../../context/ShopContext";
+import axios from "axios";
 
-const API_URL = "http://localhost:5001/api/products";
+const API_URL = import.meta.env.VITE_API_URL + "/products";
 
 const ProductManagement = () => {
+  const { token, fetchProducts: updateGlobalProducts } = useContext(ShopContext);
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,8 +32,10 @@ const ProductManagement = () => {
   const [currentProduct, setCurrentProduct] = useState({
     id: "",
     name: "",
-    desc: "",
+    description: "",
     price: "",
+    category: "",
+    stock: "",
     images: [],
   });
 
@@ -48,20 +53,22 @@ const ProductManagement = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch(API_URL);
-      const data = await res.json();
+      const res = await axios.get(API_URL);
+      const data = res.data;
 
       const list = Array.isArray(data)
         ? data
         : Array.isArray(data.products)
-        ? data.products
-        : [];
+          ? data.products
+          : [];
 
       const normalized = list.map((p) => ({
         id: p._id || p.id,
         name: p.name,
-        desc: p.desc,
+        description: p.description,
         price: p.price,
+        category: p.category,
+        stock: p.stock,
         images: p.images || [],
       }));
 
@@ -99,7 +106,7 @@ const ProductManagement = () => {
   /* ================= MODAL ================= */
   const openAddModal = () => {
     setEditMode(false);
-    setCurrentProduct({ id: "", name: "", desc: "", price: "", images: [] });
+    setCurrentProduct({ id: "", name: "", description: "", price: "", category: "", stock: "", images: [] });
     setImagePreview("");
     setIsModalOpen(true);
   };
@@ -114,7 +121,15 @@ const ProductManagement = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditMode(false);
-    setCurrentProduct({ id: "", name: "", desc: "", price: "", images: [] });
+    setCurrentProduct({
+      id: "",
+      name: "",
+      description: "",
+      price: "",
+      category: "",
+      stock: "",
+      images: []
+    });
     setImagePreview("");
   };
 
@@ -124,12 +139,20 @@ const ProductManagement = () => {
       showNotification('Product name is required', 'error');
       return false;
     }
-    if (!currentProduct.desc.trim()) {
+    if (!currentProduct.description.trim()) {
       showNotification('Product description is required', 'error');
       return false;
     }
     if (!currentProduct.price || parseFloat(currentProduct.price) <= 0) {
       showNotification('Valid price is required', 'error');
+      return false;
+    }
+    if (!currentProduct.category.trim()) {
+      showNotification('Category is required', 'error');
+      return false;
+    }
+    if (currentProduct.stock === "" || parseInt(currentProduct.stock) < 0) {
+      showNotification('Valid stock quantity is required', 'error');
       return false;
     }
     return true;
@@ -141,13 +164,11 @@ const ProductManagement = () => {
 
     try {
       setLoading(true);
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentProduct),
+      const res = await axios.post(API_URL, currentProduct, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      const saved = res.ok ? await res.json() : currentProduct;
+      const saved = res.data.product || res.data;
 
       setProducts((prev) => [
         ...prev,
@@ -155,10 +176,11 @@ const ProductManagement = () => {
       ]);
 
       showNotification('Product added successfully!', 'success');
+      updateGlobalProducts(); // Update the main store
       closeModal();
     } catch (err) {
-      console.error("Add error:", err);
-      showNotification('Failed to add product', 'error');
+      console.error("Add error:", err.response?.data?.message || err.message);
+      showNotification(err.response?.data?.message || 'Failed to add product', 'error');
     } finally {
       setLoading(false);
     }
@@ -171,13 +193,11 @@ const ProductManagement = () => {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_URL}/${currentProduct.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentProduct),
+      const res = await axios.put(`${API_URL}/${currentProduct.id}`, currentProduct, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      const updated = res.ok ? await res.json() : currentProduct;
+      const updated = res.data.product || res.data;
 
       setProducts((prev) =>
         prev.map((p) =>
@@ -186,10 +206,11 @@ const ProductManagement = () => {
       );
 
       showNotification('Product updated successfully!', 'success');
+      updateGlobalProducts(); // Update the main store 
       closeModal();
     } catch (err) {
-      console.error("Update error:", err);
-      showNotification('Failed to update product', 'error');
+      console.error("Update error:", err.response?.data?.message || err.message);
+      showNotification(err.response?.data?.message || 'Failed to update product', 'error');
     } finally {
       setLoading(false);
     }
@@ -201,12 +222,15 @@ const ProductManagement = () => {
 
     try {
       setLoading(true);
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      await axios.delete(`${API_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setProducts((prev) => prev.filter((p) => p.id !== id));
+      updateGlobalProducts(); // Update the main store
       showNotification('Product deleted successfully!', 'success');
     } catch (err) {
-      console.error("Delete error:", err);
-      showNotification('Failed to delete product', 'error');
+      console.error("Delete error:", err.response?.data?.message || err.message);
+      showNotification(err.response?.data?.message || 'Failed to delete product', 'error');
     } finally {
       setLoading(false);
     }
@@ -216,7 +240,8 @@ const ProductManagement = () => {
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.desc.toLowerCase().includes(searchTerm.toLowerCase())
+      p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   /* ================= UI ================= */
@@ -224,11 +249,10 @@ const ProductManagement = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6 lg:p-8">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl animate-slideIn ${
-          notification.type === 'success' 
-            ? 'bg-green-500/90 text-white' 
-            : 'bg-red-500/90 text-white'
-        }`}>
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl animate-slideIn ${notification.type === 'success'
+          ? 'bg-green-500/90 text-white'
+          : 'bg-red-500/90 text-white'
+          }`}>
           {notification.type === 'success' ? (
             <CheckCircle className="w-5 h-5" />
           ) : (
@@ -347,8 +371,9 @@ const ProductManagement = () => {
                 {/* Product Info */}
                 <div className="p-5">
                   <h3 className="text-lg font-bold text-white mb-2 truncate">{product.name}</h3>
-                  <p className="text-sm text-slate-400 mb-3 line-clamp-2 h-10">{product.desc}</p>
-                  
+                  <p className="text-sm text-slate-400 mb-1 line-clamp-1">{product.category}</p>
+                  <p className="text-sm text-slate-400 mb-3 line-clamp-2 h-10">{product.description}</p>
+
                   <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-700/50">
                     <span className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-rose-400 bg-clip-text text-transparent">
                       ₹{product.price}
@@ -477,14 +502,49 @@ const ProductManagement = () => {
                     Description <span className="text-red-400">*</span>
                   </label>
                   <textarea
-                    value={currentProduct.desc}
+                    value={currentProduct.description}
                     onChange={(e) =>
-                      setCurrentProduct({ ...currentProduct, desc: e.target.value })
+                      setCurrentProduct({ ...currentProduct, description: e.target.value })
                     }
                     placeholder="Enter detailed product description"
                     rows={4}
                     className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 resize-none transition-all"
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Category */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Category <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={currentProduct.category}
+                      onChange={(e) =>
+                        setCurrentProduct({ ...currentProduct, category: e.target.value })
+                      }
+                      placeholder="e.g. T-Shirt, Jeans"
+                      className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                    />
+                  </div>
+
+                  {/* Stock */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Stock <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={currentProduct.stock}
+                      onChange={(e) =>
+                        setCurrentProduct({ ...currentProduct, stock: e.target.value })
+                      }
+                      placeholder="0"
+                      className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                    />
+                  </div>
                 </div>
 
                 {/* Product Price */}

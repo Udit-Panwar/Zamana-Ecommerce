@@ -10,6 +10,7 @@ const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/orders");
 const paymentRoutes = require("./routes/payment");
 const authRoutes = require("./routes/auth");
+const adminRoutes = require("./routes/admin");
 const { clerkWebhooks } = require("./controllers/webhooks");
 
 
@@ -22,12 +23,13 @@ app.post("/api/webhooks/clerk", express.raw({ type: "application/json" }));
 app.post("/api/payment/stripe/webhook", express.raw({ type: "application/json" }));
 
 // ---- Normal JSON for rest ----
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // CORS
 app.use(cors({ origin: "*", credentials: true }));
 
-app.use('/webhooks',clerkWebhooks)
+app.use('/webhooks', clerkWebhooks)
 
 // ---- Normal Routes ----
 app.use("/api/products", productRoutes);
@@ -35,6 +37,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
   res.json({
