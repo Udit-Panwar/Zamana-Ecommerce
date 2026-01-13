@@ -22,15 +22,15 @@ import CustomerManagement from './Customer';
 import AnalyticsDashboard from './Analitics';
 
 const Dashboard = () => {
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [currentPage, setCurrentPage] = useState('products');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navigation = [
-    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
+    // { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
     { id: 'products', name: 'Products', icon: Package },
-    { id: 'orders', name: 'Orders', icon: ShoppingCart },
-    { id: 'customers', name: 'Customers', icon: Users },
-    { id: 'analytics', name: 'Analytics', icon: TrendingUp },
+    // { id: 'orders', name: 'Orders', icon: ShoppingCart },
+    // { id: 'customers', name: 'Customers', icon: Users },
+    // { id: 'analytics', name: 'Analytics', icon: TrendingUp },
   ];
 
   

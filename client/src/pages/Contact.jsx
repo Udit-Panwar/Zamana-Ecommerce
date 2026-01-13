@@ -54,7 +54,7 @@ export default function Contact() {
         ))}
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 py-24">
+      <div className="relative max-w-7xl mx-auto px-6 py-40">
         {/* Header */}
         <div className="text-center mb-16 animate-slide-down">
           <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full mb-6 animate-glow-border">
@@ -233,9 +233,11 @@ export default function Contact() {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">Visit Us</h3>
                 <p className="text-gray-300 leading-relaxed">
-                Behind PSP Hospital on Rampur Road,<br />
-                Haldwani, <br />
-                Nainital, Uttarakhand 263139
+                कुलसुम मेगा मार्ट<br/>
+                पुरानी सब्ज़ी मंडी, मंगल पड़ाव<br/>
+                हल्द्वानी – 263139 (उत्तराखंड)<br/>
+                पहली मंज़िल<br/>
+                ZAMANA Wholesale Store<br/>
                 </p>
               </div>
             </div>

@@ -33,7 +33,7 @@ export default function Collection() {
   }
 
   return (
-    <main className="min-h-screen w-full py-20 px-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+    <main className="min-h-screen w-full py-24 px-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       <div className="relative max-w-7xl mx-auto">
 
         {/* ✅ HEADING (UNCHANGED) */}

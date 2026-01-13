@@ -36,7 +36,7 @@ const Hero = () => {
           
           {/* Subtitle */}
           <div className={`mb-6 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-            <p className="text-amber-400 text-sm md:text-base font-semibold tracking-widest uppercase">
+            <p className="text-amber-400 text-sm md:text-base font-semibold tracking-widest uppercase mx-auto">
               ✨ Discover the Collection
             </p>
           </div>

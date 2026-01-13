@@ -4,6 +4,7 @@ import { assets } from "../assets/assets";
 import { useClerk } from "@clerk/clerk-react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import { ShopContext } from "../context/ShopContext";
+import LoginIcon from '@mui/icons-material/Login';
 
 const Navbar = () => {
   const navLinks = [
@@ -35,9 +36,13 @@ const Navbar = () => {
         : "py-4 md:py-6"
         }`}
     >
-      {/* Logo */}
+      {/* Logo - Responsive sizing */}
       <NavLink to="/" className="-ml-4 md:-ml-20">
-        <img src={assets.Zamana_Logo} alt="logo" className="h-25 w-25 rounded-full object-cover border-2 border-white/30 transition-all duration-500" />
+        <img 
+          src={assets.Zamana_Logo} 
+          alt="logo" 
+          className="h-12 w-12 sm:h-15 sm:w-15 md:h-20 md:w-20 lg:h-25 lg:w-25 rounded-full object-cover border-2 border-white/30 transition-all duration-500" 
+        />
       </NavLink>
 
       {/* Desktop Nav */}
@@ -94,8 +99,8 @@ const Navbar = () => {
 
         <SignedOut>
           <SignInButton mode="modal">
-            <button className="bg-white text-black px-5 py-2 rounded-full font-medium hover:scale-105 transition-all duration-300 shadow-md">
-              Login
+            <button>
+              <LoginIcon sx={{color:"white",fontSize:"35px",cursor:"pointer"}} /> 
             </button>
           </SignInButton>
         </SignedOut>
